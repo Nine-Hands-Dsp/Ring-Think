@@ -13,7 +13,9 @@ public:
     void parentHierarchyChanged() override;
     void visibilityChanged() override;
     int  getScaleIndex() const;          // 1, 2 = 75 %, 100 %  (-1 = default / free size)
-    void setScaleIndex (int idx);        // 1, 2 = 75 %, 100 %  (-1 or 0 = default 67 %, the minimum size)
+    void setScaleIndex (int idx);        // taille de cette instance : 0, 1, 2 = 60 % / 75 % / 100 %  (-1 = taille par defaut choisie)
+    void applyScaleIndex (int idx);      // redimensionne seulement : 0, 1, 2 = 60 % (minimum) / 75 % / 100 %
+    static constexpr int numSizes = 3;   // 60 % (defaut d'origine) / 75 % / 100 %
     RingProcessor& getProc() { return proc; }   // menus clic droit (MIDI Learn)
 
 private:

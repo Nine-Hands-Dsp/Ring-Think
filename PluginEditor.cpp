@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include <BinaryData.h>
+#include "WigaWindowSize.h"
 
 namespace
 {
@@ -676,7 +677,11 @@ RingEditor::RingEditor (RingProcessor& p) : AudioProcessorEditor (&p), proc (p)
     const int maxW = 1500;
     setResizeLimits (minW, (int) std::lround ((double) minW * kH / kW), maxW, (int) std::lround ((double) maxW * kH / kW));
     getConstrainer()->setFixedAspectRatio ((double) kW / (double) kH);
-    setScaleIndex (juce::jlimit (-1, 2, proc.uiScaleIdx.load()));   // default: 67 %
+    // taille d'ouverture : celle enregistree pour cette instance (projet) si elle existe,
+    // sinon celle choisie dans le menu « Default size (new windows) »
+    const int saved = juce::jlimit (-1, 2, proc.uiScaleIdx.load());
+    if (saved >= 0) setScaleIndex (saved);
+    else            applyScaleIndex (WigaWindowSize::defaultIndex (JucePlugin_Name, numSizes));
 }
 
 RingEditor::~RingEditor() = default;
@@ -746,9 +751,14 @@ int RingEditor::getScaleIndex() const
 void RingEditor::setScaleIndex (int idx)
 {
     idx = juce::jlimit (-1, 2, idx);
-    if (idx == 0) idx = -1;                                   // the old 50 % slot is now the default size
-    proc.uiScaleIdx = idx;
-    const float s = idx < 0 ? kDefaultScale : kScales[idx];
+    proc.uiScaleIdx = idx;                                    // -1 = taille par defaut choisie, 0 = 60 % (l'ancien 50 % devient 60 %)
+    applyScaleIndex (idx < 0 ? WigaWindowSize::defaultIndex (JucePlugin_Name, numSizes) : idx);
+}
+
+void RingEditor::applyScaleIndex (int idx)
+{
+    idx = juce::jlimit (0, numSizes - 1, idx);
+    const float s = idx == 0 ? kDefaultScale : kScales[idx];
     const int w = (int) std::lround (kRefW * s);
     setSize (w, (int) std::lround ((double) w * kH / kW));
 }
@@ -758,22 +768,43 @@ static bool isDefaultSize (const RingEditor* ed)
     return ed != nullptr && std::abs ((float) ed->getWidth() / (float) kRefW - kDefaultScale) < 0.02f;
 }
 
+// Plugin size : tailles de cette fenetre + sous-menu « Default size (new windows) » (comme Octopus)
+// ids : 104 = 60 %, 102 = 75 %, 103 = 100 % ; 120 + i = taille par defaut des nouvelles fenetres
+static void addSizeItems (juce::PopupMenu& m, const RingEditor* ed)
+{
+    const int cur = ed != nullptr ? ed->getScaleIndex() : -1;
+    const int def = WigaWindowSize::defaultIndex (JucePlugin_Name, RingEditor::numSizes);
+    const char* names[RingEditor::numSizes] = { "60 %", "75 %", "100 %" };
+    const int ids[RingEditor::numSizes] = { 104, 102, 103 };
+    juce::PopupMenu defSizes;
+    for (int i = 0; i < RingEditor::numSizes; ++i)
+    {
+        m.addItem (ids[i], juce::String (names[i]) + (i == def ? "  (default)" : ""), true, i == 0 ? isDefaultSize (ed) : cur == i);
+        defSizes.addItem (120 + i, names[i], true, i == def);
+    }
+    m.addSeparator();
+    m.addSubMenu ("Default size (new windows)", defSizes);
+}
+
 static void addSizeSubmenu (juce::PopupMenu& m, juce::Component& c)
 {
-    const auto* ed = c.findParentComponentOfClass<RingEditor>();
-    const int cur = ed != nullptr ? ed->getScaleIndex() : -1;
     juce::PopupMenu sub;
-    sub.addItem (104, "60 % (default)", true, isDefaultSize (ed));
-    sub.addItem (102, "75 %", true, cur == 1);
-    sub.addItem (103, "100 %", true, cur == 2);
+    addSizeItems (sub, c.findParentComponentOfClass<RingEditor>());
     m.addSeparator();
     m.addSubMenu ("Plugin size", sub);
 }
 
 static void handleSizeChoice (int r, juce::Component* c)
 {
-    if (c == nullptr || r < 102 || r > 104) return;
-    if (auto* ed = c->findParentComponentOfClass<RingEditor>()) ed->setScaleIndex (r == 104 ? -1 : r - 101);
+    if (c == nullptr) return;
+    auto* ed = c->findParentComponentOfClass<RingEditor>();
+    if (ed == nullptr) return;
+    if (r >= 102 && r <= 104) ed->setScaleIndex (r == 104 ? 0 : r - 101);    // taille de cette instance
+    else if (r >= 120 && r < 120 + RingEditor::numSizes)
+    {
+        WigaWindowSize::setDefaultIndex (JucePlugin_Name, r - 120);           // toutes les nouvelles fenetres de ce plugin
+        ed->setScaleIndex (-1);                                               // et cette fenetre tout de suite
+    }
 }
 
 // ------------------------------------------------------------------ MIDI Learn (clic droit)
@@ -834,13 +865,10 @@ static bool handleLearnChoice (int r, juce::Component* c)
 static void showSizeMenuFor (juce::Component& c, int learnIdx)
 {
     const auto* ed = c.findParentComponentOfClass<RingEditor>();
-    const int cur = ed != nullptr ? ed->getScaleIndex() : -1;
     juce::PopupMenu m;
     addLearnSection (m, c, learnIdx);
     m.addSectionHeader ("Plugin size");
-    m.addItem (104, "60 % (default)", true, isDefaultSize (ed));
-    m.addItem (102, "75 %", true, cur == 1);
-    m.addItem (103, "100 %", true, cur == 2);
+    addSizeItems (m, ed);
     if (learnIdx < 0) addMidiSubmenu (m, c);
     juce::Component::SafePointer<juce::Component> sp (&c);
     m.showMenuAsync (juce::PopupMenu::Options(), [sp] (int r)

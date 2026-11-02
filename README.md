@@ -34,6 +34,11 @@ Windows: %APPDATA%\WigaRingThink\user_presets.xml
 macOS: ~/Library/WigaRingThink/user_presets.xml
 (shared by every project).
 
+## Plugin size (clic droit)
+- *Plugin size* : 60 % (taille minimale), 75 %, 100 % ; taille actuelle cochée, « (default) » à côté de la taille par défaut.
+- *Plugin size > Default size (new windows)* : taille d'ouverture des nouvelles fenêtres, mémorisée pour toutes les instances
+  (comme Octopus) et appliquée tout de suite ; une taille choisie pour une instance reste enregistrée dans son projet.
+
 ## v2.3.0 - anti-gel v2 (fenêtre qui se fige sous Windows / Reaper)
 - JUCE 8.0.15 (corrections Direct2D, mise à l'échelle Windows, redimensionnement).
 - Fenêtre opaque, moteur de rendu logiciel réappliqué dès que l'hôte recrée la fenêtre.
@@ -50,3 +55,4 @@ All the PNG files at the repo root are the pedal artwork (background, knob caps,
 
 - v2.3.1 : menu de taille de fenêtre : « 60 % (default) », 75 %, 100 % (plus de taille en pixels)
 - v2.4.0 : MIDI Learn au clic droit sur chaque commande (Clear MIDI, assignations sauvegardées avec le projet)
+- v2.5.0 : clic droit > Plugin size > Default size (new windows) : taille par défaut des nouvelles fenêtres au choix, comme dans Octopus

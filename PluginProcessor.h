@@ -66,7 +66,7 @@ public:
     void cancelMidiLearn() { learnTarget = -1; }
     bool isBypassLatching() const { return bypassLatching.load(); }
     void setBypassLatching (bool b) { bypassLatching = b; }
-    std::atomic<int> uiScaleIdx { -1 };       // -1 = default size (67 %), 0..2 = 50 / 75 / 100 %
+    std::atomic<int> uiScaleIdx { -1 };       // -1 = taille par defaut choisie (menu Default size), 0..2 = 60 / 75 / 100 %
     MidiTarget getLearnTarget() const
     {
         const int lt = learnTarget.load();
