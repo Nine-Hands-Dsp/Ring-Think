@@ -1,4 +1,4 @@
-# Ring Think (Studio Wiga) - VST3 (Windows + macOS) and AU (macOS) - personal use
+# Ring Think (NINE HANDS | DSP) - VST3 (Windows + macOS) and AU (macOS) - personal use
 
 ## Repository layout (everything at the ROOT of the repo, no sub-folder except .github)
     CMakeLists.txt

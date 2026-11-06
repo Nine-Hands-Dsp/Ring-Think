@@ -32,7 +32,7 @@ else()
 endif()
 
 juce_add_plugin(RingThingSSB
-  COMPANY_NAME "Studio Wiga"
+  COMPANY_NAME "NINE HANDS | DSP"
   PLUGIN_MANUFACTURER_CODE Wiga
   PLUGIN_CODE WgRt
   FORMATS ${RING_FORMATS}

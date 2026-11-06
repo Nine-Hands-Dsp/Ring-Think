@@ -1,4 +1,4 @@
-# Studio Wiga - moteur commun des notices PDF bilingues (anglais puis francais), style maison.
+# NINE HANDS | DSP - moteur commun des notices PDF bilingues (anglais puis francais), style maison.
 # Utilise par tools/manual.py (contenu de la notice). Images et polices dans tools/manual_assets/.
 # Blocs de contenu (listes de tuples) :
 #   ("h1", txt) ("h2", txt) ("p", txt) ("small", txt) ("bullets", [txt...]) ("pb",) ("cond", mm) ("space", mm)
@@ -131,7 +131,7 @@ def build(out, product, version, accent, cover_name, texts, content, footer=None
         f.append(PageBreak())
         return f
 
-    foot = footer or (product + " (Studio Wiga) · v" + version)
+    foot = footer or (product + " (NINE HANDS | DSP) · v" + version)
 
     def deco(c, doc):
         c.saveState()
@@ -146,7 +146,7 @@ def build(out, product, version, accent, cover_name, texts, content, footer=None
         c.setFillColor(ACC); c.rect(0, A4[1] - 3 * mm, A4[0], 3 * mm, stroke=0, fill=1); c.restoreState()
 
     doc = BaseDocTemplate(out, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm, bottomMargin=18 * mm,
-                          title=product + " - Manual / Notice v" + version, author="Studio Wiga")
+                          title=product + " - Manual / Notice v" + version, author="NINE HANDS | DSP")
     doc.addPageTemplates([PageTemplate(id="cover", frames=[Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="fc")], onPage=cover_bg),
                           PageTemplate(id="p", frames=[Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="f")], onPage=deco)])
     en = section("en"); fr = section("fr")
