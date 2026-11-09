@@ -1,5 +1,12 @@
 # Ring Think (NINE HANDS | DSP) - VST3 (Windows + macOS) and AU (macOS) - personal use
 
+<p align="center">
+  <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest/download/RingThink-VST3-Windows.zip"><img alt="Télécharger pour Windows" src="https://img.shields.io/badge/%E2%AC%87%20T%C3%A9l%C3%A9charger-Windows-0078D6?style=for-the-badge"></a>
+  <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest/download/RingThink-VST3-macOS.zip"><img alt="Télécharger pour macOS" src="https://img.shields.io/badge/%E2%AC%87%20T%C3%A9l%C3%A9charger-macOS-111111?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <br>
+  <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest"><img alt="Dernière version" src="https://img.shields.io/github/v/release/Nine-Hands-Dsp/Ring-Think?label=derni%C3%A8re%20version&color=919496"></a>
+</p>
+
 ## Repository layout (everything at the ROOT of the repo, no sub-folder except .github)
     CMakeLists.txt
     PluginProcessor.h / PluginProcessor.cpp
