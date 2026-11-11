@@ -635,6 +635,15 @@ bool RingProcessor::isPresetDirty() const
         || d (c.fine, p.fine) || d (c.coarse, p.coarse) || c.modes != p.modes;
 }
 
+bool RingProcessor::isSlotFactory (int slot) const
+{
+    if (slot < 1 || slot > 9) return false;
+    const auto& p = userPresets[slot - 1];
+    const auto f = factoryPreset (slot - 1);
+    auto d = [] (float a, float b) { return std::abs (a - b) > 0.002f; };
+    return ! (d (p.blend, f.blend) || d (p.wave, f.wave) || d (p.filter, f.filter) || d (p.fine, f.fine) || d (p.coarse, f.coarse) || p.modes != f.modes);
+}
+
 void RingProcessor::saveUserPreset (int slot)
 {
     if (slot < 1 || slot > 9) return;

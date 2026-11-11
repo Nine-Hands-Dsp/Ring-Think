@@ -53,6 +53,7 @@ public:
     void restoreFactoryPreset (int slot1to9);
     void restoreAllFactory();
     bool isPresetDirty() const;
+    bool isSlotFactory (int slot1to9) const;   // le preset n'a pas ete reenregistre : on peut afficher son nom d'usine
     void requestNextPreset();
     void cycleModes();
     int  getModes() const;

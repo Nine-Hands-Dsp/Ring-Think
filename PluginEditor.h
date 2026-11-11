@@ -1,8 +1,11 @@
 #pragma once
 #include "PluginProcessor.h"
+#include "NineHandsMenu.h"
 
 class PedalContent;
 
+// Ring Think (NINE HANDS | DSP) v3 : pedale au format double, image 2350 x 1800 (repere 1175 x 900 unites),
+// potards nh::Knob, LED du kit photo avec halo dose par Glow, pastille presets / ligne d'etat, menus d'Octopus.
 class RingEditor : public juce::AudioProcessorEditor
 {
 public:
@@ -12,17 +15,27 @@ public:
     void resized() override;
     void parentHierarchyChanged() override;
     void visibilityChanged() override;
-    int  getScaleIndex() const;          // 1, 2 = 75 %, 100 %  (-1 = default / free size)
-    void setScaleIndex (int idx);        // taille de cette instance : 0, 1, 2 = 60 % / 75 % / 100 %  (-1 = taille par defaut choisie)
-    void applyScaleIndex (int idx);      // redimensionne seulement : 0, 1, 2 = 60 % (minimum) / 75 % / 100 %
-    static constexpr int numSizes = 3;   // 60 % (defaut d'origine) / 75 % / 100 %
-    RingProcessor& getProc() { return proc; }   // menus clic droit (MIDI Learn)
+
+    static constexpr int numSizes = 3;                // 60 % (defaut) / 75 % / 100 %
+    static int sizeHeight (int idx);                  // hauteur de fenetre de chaque taille
+    int  currentSizeIndex() const;                    // -1 = taille libre
+    void setScaleIndex (int idx);                     // -1 = taille par defaut choisie, 0..2
+    RingProcessor& getProc() { return proc; }
+
+    // menus clic droit (design d'Octopus), toujours ouverts a l'endroit du clic
+    void showContextMenu (int learnIdx);              // -1 = menu principal
+    void showPresetMenu (juce::Rectangle<int> screenArea);
+    void flash (const juce::String& text, double seconds = 2.5);
+
+    NineHandsMenu::MenuLnf menuLnf;
+    juce::Typeface::Ptr regularFace, mediumFace, boldFace;
+    float glow = 1.0f;                                // reglage Glow (0,25 a 1)
 
 private:
-    friend class PedalContent;           // son timer surveille le moteur de rendu (anti-gel v2)
-    void useSoftwareRenderer();          // applique le moteur logiciel (Windows) si la fenêtre a changé
-    void checkRenderer();                // depuis le timer : seulement si la fenêtre a changé ou au plus 1 fois / s
-    void resetRenderer();                // chien de garde : oublie la fenêtre mémorisée et réapplique tout
+    friend class PedalContent;                        // son timer surveille le moteur de rendu (anti-gel v2)
+    void useSoftwareRenderer();
+    void checkRenderer();
+    void resetRenderer();
     void* lastPeer = nullptr;
     juce::uint32 lastRendererCheck = 0;
     RingProcessor& proc;

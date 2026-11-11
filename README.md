@@ -1,4 +1,6 @@
-# Ring Think (NINE HANDS | DSP) - VST3 (Windows + macOS) and AU (macOS) - personal use
+# Ring Think (NINE HANDS | DSP)
+
+Modulateur en anneau / décaleur de fréquence à bande latérale unique, pitch shifter et phaser, d'après l'Electro-Harmonix Ring Thing. VST3 pour Windows et macOS (+ AU sur macOS), au format pédale double.
 
 <p align="center">
   <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest/download/RingThink-VST3-Windows.zip"><img alt="Télécharger pour Windows" src="https://img.shields.io/badge/%E2%AC%87%20T%C3%A9l%C3%A9charger-Windows-0078D6?style=for-the-badge"></a>
@@ -6,62 +8,33 @@
   <br>
   <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest/download/RingThink-Notice.pdf"><img alt="Télécharger la notice (PDF)" src="https://img.shields.io/badge/%F0%9F%93%96%20Notice-PDF-919496?style=for-the-badge"></a>
   <br>
-  <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest"><img alt="Dernière version" src="https://img.shields.io/github/v/release/Nine-Hands-Dsp/Ring-Think?label=derni%C3%A8re%20version&color=919496"></a>
+  <a href="https://github.com/Nine-Hands-Dsp/Ring-Think/releases/latest"><img alt="Dernière version" src="https://img.shields.io/github/v/release/Nine-Hands-Dsp/Ring-Think?label=derni%C3%A8re%20version&color=ff5a1f"></a>
 </p>
 
-## Repository layout (everything at the ROOT of the repo, no sub-folder except .github)
-    CMakeLists.txt
-    PluginProcessor.h / PluginProcessor.cpp
-    PluginEditor.h / PluginEditor.cpp
-    background.png
-    pitchshift_white.png
-    pitchshift_yellow.png
-    .github/workflows/build.yml
-
-## Get the .vst3
-1. Create a NEW empty GitHub repository, then "Add file > Upload files" and drop the files above.
-2. Create .github/workflows/build.yml by hand if the upload skipped the hidden folder
-   (Add file > Create new file, type the path .github/workflows/build.yml and paste the file content).
-3. Actions tab > "Build Windows + macOS" > open the green run > Artifacts:
-   - RingThink-VST3-Windows  (Windows)
-   - RingThink-macOS-VST3-AU (macOS: universal Apple Silicon + Intel)
+## Installation
+Les boutons ci-dessus téléchargent toujours la dernière version.
 
 ### Windows
-Unzip, copy "Ring Think.vst3" to C:\Program Files\Common Files\VST3\ and rescan plugins in your DAW.
+Dézipper, copier « Ring Think.vst3 » dans `C:\Program Files\Common Files\VST3\` puis relancer la recherche de plugins du DAW.
 
 ### macOS
-1. Unzip the artifact. Copy "Ring Think.vst3" to /Library/Audio/Plug-Ins/VST3/
-   and "Ring Think.component" (Audio Unit, for Logic/GarageBand) to /Library/Audio/Plug-Ins/Components/
-   (or the same folders inside your user ~/Library).
-2. The plugin is not notarized by Apple, so macOS blocks downloaded files. Open Terminal and run once:
+1. Dézipper. Copier « Ring Think.vst3 » dans `/Library/Audio/Plug-Ins/VST3/` (et « Ring Think.component » dans `/Library/Audio/Plug-Ins/Components/` pour Logic / GarageBand).
+2. Le plugin n'est pas notarisé par Apple : dans le Terminal, une seule fois :
        xattr -cr "/Library/Audio/Plug-Ins/VST3/Ring Think.vst3"
        xattr -cr "/Library/Audio/Plug-Ins/Components/Ring Think.component"
-3. Rescan plugins in your DAW (Logic: restart it; AU validation runs automatically).
+3. Relancer la recherche de plugins du DAW.
 
-## User presets
-Windows: %APPDATA%\WigaRingThink\user_presets.xml
-macOS: ~/Library/WigaRingThink/user_presets.xml
-(shared by every project).
+## Presets utilisateur
+Windows : `%APPDATA%\WigaRingThink\user_presets.xml` — macOS : `~/Library/WigaRingThink/user_presets.xml` (communs à tous les projets).
 
-## Plugin size (clic droit)
-- *Plugin size* : 60 % (taille minimale), 75 %, 100 % ; taille actuelle cochée, « (default) » à côté de la taille par défaut.
-- *Plugin size > Default size (new windows)* : taille d'ouverture des nouvelles fenêtres, mémorisée pour toutes les instances
-  (comme Octopus) et appliquée tout de suite ; une taille choisie pour une instance reste enregistrée dans son projet.
+## Contenu du dépôt
+- `CMakeLists.txt`, `PluginProcessor.*`, `PluginEditor.*`, `NHKnob.h` (potards animés), `NineHandsMenu.h` (menus d'Octopus), `NineHandsGlow.h`, `Layout.h` (repères générés).
+- Images (fond 2350 x 1800, sprites, halos des LED, calques du potard), police Poppins et logo NINE HANDS | DSP : intégrés au plugin.
+- `tools/art/` : scripts qui fabriquent les images à partir du visuel ; `tools/render/` : captures de la vraie fenêtre sous Linux ; `tools/manual.py` : notice.
 
-## v2.3.0 - anti-gel v2 (fenêtre qui se fige sous Windows / Reaper)
-- JUCE 8.0.15 (corrections Direct2D, mise à l'échelle Windows, redimensionnement).
-- Fenêtre opaque, moteur de rendu logiciel réappliqué dès que l'hôte recrée la fenêtre.
-- Fond mis à l'échelle par le timer uniquement (aucun calcul lourd pendant le dessin).
-- Chien de garde : si une zone demandée n'est pas redessinée en 1,5 s, le rendu est relancé.
-- Plus aucun appel à l'hôte depuis le thread audio (MIDI, footswitch, presets passent par un timer à 60 Hz).
-
-## v2.2.2
-- The plugin now opens on the "Ring Mod" sound (knob defaults were giving a ~15 Hz carrier, heard as a tremolo).
-- Pitch shift (Sub Octave, Octave Up, Detune...): the grain window now locks onto the period of the played note, so the shifted note is in tune and no longer beats or wobbles. Chords and silence fall back to the previous fixed window.
-
-## Files (v2.3.0)
-All the PNG files at the repo root are the pedal artwork (background, knob caps, LEDs, labels...) and are embedded in the plugin by CMakeLists.txt: upload them all.
-
-- v2.3.1 : menu de taille de fenêtre : « 60 % (default) », 75 %, 100 % (plus de taille en pixels)
-- v2.4.0 : MIDI Learn au clic droit sur chaque commande (Clear MIDI, assignations sauvegardées avec le projet)
-- v2.5.0 : clic droit > Plugin size > Default size (new windows) : taille par défaut des nouvelles fenêtres au choix, comme dans Octopus
+## Historique
+- v3.0.0 : refonte aux règles NINE HANDS | DSP : image 2350 x 1800 plein cadre (boîtier élargi sans rien étirer), jacks photo du kit, footswitchs d'Echoflex, potards animés (index, chapeau, couronne et ombre solidaires, flou de mouvement, lumière fixe en haut à gauche), LED du kit avec halo sur la façade, réglage Glow 25 / 50 / 75 / 100 %, pastille presets / ligne d'état (taille Strong Pickle), menus clic droit d'Octopus ouverts là où l'on clique, logo NINE HANDS | DSP vectoriel.
+- v2.5.0 : clic droit > Plugin size > Default size (new windows).
+- v2.4.0 : MIDI Learn au clic droit sur chaque commande.
+- v2.3.0 : anti-gel v2 (JUCE 8.0.15, rendu logiciel, chien de garde, aucun appel à l'hôte depuis le thread audio).
+- v2.2.2 : ouverture sur le son « Ring Mod » ; pitch shift calé sur la période de la note jouée.

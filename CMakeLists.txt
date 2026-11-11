@@ -6,7 +6,7 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
 endif()
 
-project(WigaRingThink VERSION 2.5.1)
+project(WigaRingThink VERSION 3.0.0)
 
 include(FetchContent)
 FetchContent_Declare(JUCE
@@ -15,14 +15,18 @@ FetchContent_Declare(JUCE
   GIT_SHALLOW ON)
 FetchContent_MakeAvailable(JUCE)
 
-# the pedal picture is embedded into the plugin (no external file needed at runtime)
+# images de la pedale (tools/export_plugin.py : fond 2350 x 1800, sprites 2x, halos des LED, calques du potard),
+# police Poppins et logo NINE HANDS | DSP integres au plugin (rien a installer a cote)
 juce_add_binary_data(RingAssets SOURCES
   background.png
-  cap_big.png cap_fsL.png cap_fsR.png
-  face_on.png label_rm.png label_ub.png label_lb.png
-  pitchshift_white.png pitchshift_yellow.png
-  phaser_white.png phaser_yellow.png
-  led_s_on.png led_s_off.png led_p_on.png led_p_off.png led_r_on.png led_r_off.png)
+  cap_big.png face_on.png label_rm.png label_ub.png label_lb.png
+  pitchshift_white.png pitchshift_yellow.png phaser_white.png phaser_yellow.png
+  ledS_on.png ledS_off.png ledP_on.png ledR_on.png
+  glow_lad0.png glow_lad1.png glow_lad2.png glow_lad3.png glow_lad4.png glow_lad5.png glow_lad6.png glow_lad7.png glow_lad8.png
+  glow_mode_rm.png glow_mode_ub.png glow_mode_lb.png glow_phaser.png glow_preset.png glow_status.png
+  knob_shadow.png knob_crown.png knob_cap.png knob_marker.png knob_highlight.png
+  Poppins-Regular.ttf Poppins-Medium.ttf Poppins-Bold.ttf
+  NineHandsLogoWhite.svg)
 
 # VST3 everywhere; Audio Unit in addition on macOS (Logic, GarageBand, ...)
 if(APPLE)
