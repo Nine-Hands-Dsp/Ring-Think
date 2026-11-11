@@ -1,9 +1,9 @@
-// genere par tools/art/make_art_hd.py - ne pas modifier a la main (repere 1175 x 900 unites, images 2,5 px / unite)
+// genere par tools/art/make_art_hd.py - ne pas modifier a la main (repere 1175 x 900 unites, images 2 px / unite (fond 2350 x 1800))
 #pragma once
 #include <juce_graphics/juce_graphics.h>
 namespace layout
 {
-    constexpr float frameW = 1175.0f, frameH = 900.0f, pxPerUnit = 2.50f;
+    constexpr float frameW = 1175.0f, frameH = 900.0f, pxPerUnit = 2.00f;
     const juce::Point<float> knobPos[5] = { { 160.36f, 195.31f }, { 333.83f, 195.27f }, { 509.74f, 195.22f }, { 684.67f, 195.18f }, { 857.16f, 195.13f } };
     constexpr float knobD = 164.61f;
     const juce::Point<float> capPos { 1034.53f, 196.06f }; constexpr float capD = 135.60f, capDotR = 39.94f;   // bouton MODE

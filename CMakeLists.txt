@@ -6,7 +6,7 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
 endif()
 
-project(WigaRingThink VERSION 3.0.2)
+project(WigaRingThink VERSION 3.0.3)
 
 include(FetchContent)
 FetchContent_Declare(JUCE
