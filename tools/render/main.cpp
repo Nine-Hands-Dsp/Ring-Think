@@ -33,9 +33,13 @@ int main (int argc, char** argv)
     shot ("ringthink_default", 0, 2.0f);
     shot ("ringthink_100", 2, 2.0f);
     proc.setParamValue ("blend", 0.73f); pump (6);
-    shot ("ringthink_status", 2, 1.0f);
+    shot ("ringthink_status", 2, 2.0f);
     proc.loadPreset (4); proc.setParamValue ("active", 0.0f); pump (150);
-    shot ("ringthink_preset4_bypass", 2, 1.0f);
+    shot ("ringthink_preset4_bypass", 2, 2.0f);
+    proc.setParamValue ("active", 1.0f); proc.loadPreset (0);
+    proc.setParamValue ("rm", 0.0f); proc.setParamValue ("ub", 1.0f); proc.setParamValue ("lb", 1.0f);
+    proc.setParamValue ("ps", 1.0f); proc.setParamValue ("ph", 1.0f); pump (150);
+    shot ("ringthink_modes", 2, 2.0f);
     re->setScaleIndex (-1);
     ed.reset();
 
