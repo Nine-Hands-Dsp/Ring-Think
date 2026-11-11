@@ -40,6 +40,13 @@ int main (int argc, char** argv)
     proc.setParamValue ("rm", 0.0f); proc.setParamValue ("ub", 1.0f); proc.setParamValue ("lb", 1.0f);
     proc.setParamValue ("ps", 1.0f); proc.setParamValue ("ph", 1.0f); pump (150);
     shot ("ringthink_modes", 2, 2.0f);
+    // taille maximale de la fenetre (coin tire au bout), capture a l'echelle 1 et 2 (ecran HiDPI)
+    proc.setParamValue ("ub", 0.0f); proc.setParamValue ("lb", 0.0f); proc.setParamValue ("ps", 0.0f); proc.setParamValue ("ph", 0.0f);
+    proc.loadPreset (1); pump (150);
+    ed->setSize ((int) std::lround (1125.0 * 1175.0 / 900.0), 1125); run(); pump (60);
+    std::printf ("taille max : %d x %d\n", ed->getWidth(), ed->getHeight());
+    save (ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f), out + "/ringthink_max_1x.png");
+    save (ed->createComponentSnapshot (ed->getLocalBounds(), true, 2.0f), out + "/ringthink_max_2x.png");
     re->setScaleIndex (-1);
     ed.reset();
 

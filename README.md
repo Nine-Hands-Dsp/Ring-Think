@@ -30,9 +30,10 @@ Windows : `%APPDATA%\WigaRingThink\user_presets.xml` — macOS : `~/Library/Wiga
 ## Contenu du dépôt
 - `CMakeLists.txt`, `PluginProcessor.*`, `PluginEditor.*`, `NHKnob.h` (potards animés), `NineHandsMenu.h` (menus d'Octopus), `NineHandsGlow.h`, `Layout.h` (repères générés).
 - Images (fond 2350 x 1800, sprites, halos des LED, calques du potard), police Poppins et logo NINE HANDS | DSP : intégrés au plugin.
-- `tools/art/` : scripts qui fabriquent les images à partir du visuel ; `tools/render/` : captures de la vraie fenêtre sous Linux ; `tools/manual.py` : notice.
+- `tools/art/` : `make_art_hd.py` fabrique les images à partir du visuel HD `hd.png` (anciens scripts de la v3.0.0 conservés) ; `tools/render/` : captures de la vraie fenêtre sous Linux ; `tools/manual.py` : notice.
 
 ## Historique
+- v3.0.1 : nouveau visuel haute définition (2938 x 2250, fourni par l'utilisateur, sans agrandissement) : net jusqu'à la taille maximale de la fenêtre, y compris sur écran Retina / 200 % ; inscriptions PITCH-SHIFT et PHASER en vectoriel.
 - v3.0.0 : refonte aux règles NINE HANDS | DSP : image 2350 x 1800 plein cadre (boîtier élargi sans rien étirer), jacks photo du kit, footswitchs d'Echoflex, potards animés (index, chapeau, couronne et ombre solidaires, flou de mouvement, lumière fixe en haut à gauche), LED du kit avec halo sur la façade, réglage Glow 25 / 50 / 75 / 100 %, pastille presets / ligne d'état (taille Strong Pickle), menus clic droit d'Octopus ouverts là où l'on clique, logo NINE HANDS | DSP vectoriel.
 - v2.5.0 : clic droit > Plugin size > Default size (new windows).
 - v2.4.0 : MIDI Learn au clic droit sur chaque commande.

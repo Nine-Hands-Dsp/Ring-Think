@@ -53,7 +53,7 @@ namespace
     void drawCentred (juce::Graphics& g, const juce::Image& im, juce::Point<float> c, float scale = 1.0f, float alpha = 1.0f)
     {
         if (! im.isValid() || alpha <= 0.0f) return;
-        const float w = (float) im.getWidth() * 0.5f * scale, h = (float) im.getHeight() * 0.5f * scale;
+        const float w = (float) im.getWidth() / layout::pxPerUnit * scale, h = (float) im.getHeight() / layout::pxPerUnit * scale;
         g.setOpacity (juce::jmin (1.0f, alpha));
         g.drawImage (im, juce::Rectangle<float> (w, h).withCentre (c));
         g.setOpacity (1.0f);
@@ -298,7 +298,7 @@ public:
             addAndMakeVisible (*faces[i]);
             faces[i]->setBounds (juce::Rectangle<float> (layout::faceW, layout::faceH).withCentre (layout::face[i]).toNearestInt());
         }
-        addAndMakeVisible (psZone);   psZone.setBounds (juce::Rectangle<float> ((float) art.psWhite.getWidth() * 0.5f + 16.0f, 30.0f).withCentre (layout::psPos).toNearestInt());
+        addAndMakeVisible (psZone);   psZone.setBounds (juce::Rectangle<float> ((float) art.psWhite.getWidth() / layout::pxPerUnit + 16.0f, 30.0f).withCentre (layout::psPos).toNearestInt());
         addAndMakeVisible (phZone);   phZone.setBounds (layout::phPill.toNearestInt());
         addAndMakeVisible (ladder);
         ladder.setBounds (juce::Rectangle<float> (layout::ladder[0].x - 26.0f, layout::ladder[0].y - 19.0f, 205.0f,
@@ -565,8 +565,8 @@ private:
                     askRepaint (juce::Rectangle<float> (layout::faceW, layout::faceH).withCentre (layout::face[i - gMode0]).getSmallestIntegerContainer().expanded (3));
             }
         const int modes = proc.getModes();
-        if ((modes ^ drawnModes) & kPS) askRepaint (juce::Rectangle<float> ((float) art.psWhite.getWidth() * 0.5f + 4, (float) art.psWhite.getHeight() * 0.5f + 4).withCentre (layout::psPos).toNearestInt());
-        if ((modes ^ drawnModes) & kPH) askRepaint (juce::Rectangle<float> ((float) art.phWhite.getWidth() * 0.5f + 4, (float) art.phWhite.getHeight() * 0.5f + 4).withCentre (layout::phTxt).toNearestInt());
+        if ((modes ^ drawnModes) & kPS) askRepaint (juce::Rectangle<float> ((float) art.psWhite.getWidth() / layout::pxPerUnit + 4, (float) art.psWhite.getHeight() / layout::pxPerUnit + 4).withCentre (layout::psPos).toNearestInt());
+        if ((modes ^ drawnModes) & kPH) askRepaint (juce::Rectangle<float> ((float) art.phWhite.getWidth() / layout::pxPerUnit + 4, (float) art.phWhite.getHeight() / layout::pxPerUnit + 4).withCentre (layout::phTxt).toNearestInt());
         drawnModes = modes;
 
         // pastille : fondu croise presets <-> ligne d'etat (~120 ms a l'apparition, ~300 ms au retour)
