@@ -633,6 +633,7 @@ RingEditor::RingEditor (RingProcessor& p) : AudioProcessorEditor (&p), proc (p)
     setResizable (true, true);
     setResizeLimits ((int) std::lround (kHeights[0] * aspect), kHeights[0], (int) std::lround (kHeightMax * aspect), kHeightMax);   // jamais plus petit que la taille par defaut
     getConstrainer()->setFixedAspectRatio (aspect);
+    hostLock.setLimits ((int) std::lround (kHeights[0] * aspect), kHeights[0], (int) std::lround (kHeightMax * aspect), kHeightMax);
     // ouverture : taille enregistree pour cette instance (projet), sinon la taille par defaut choisie dans le menu
     const int saved = juce::jlimit (-1, 2, proc.uiScaleIdx.load());
     const int idx = saved >= 0 ? saved : WigaWindowSize::defaultIndex (JucePlugin_Name, numSizes);
@@ -660,10 +661,11 @@ void RingEditor::useSoftwareRenderer()
 void RingEditor::checkRenderer()
 {
     if ((void*) getPeer() != lastPeer || juce::Time::getMillisecondCounter() - lastRendererCheck >= 1000) useSoftwareRenderer();
+    hostLock.track (*this);
 }
 void RingEditor::resetRenderer() { lastPeer = nullptr; useSoftwareRenderer(); repaint(); }
 void RingEditor::paint (juce::Graphics& g) { g.fillAll (juce::Colour (0xff111112)); }
-void RingEditor::parentHierarchyChanged() { useSoftwareRenderer(); }
+void RingEditor::parentHierarchyChanged() { useSoftwareRenderer(); hostLock.track (*this); }
 void RingEditor::visibilityChanged() { useSoftwareRenderer(); if (isShowing()) repaint(); }
 
 void RingEditor::resized()
@@ -685,6 +687,7 @@ void RingEditor::setScaleIndex (int idx)
     proc.uiScaleIdx = idx;
     const int i = idx < 0 ? WigaWindowSize::defaultIndex (JucePlugin_Name, numSizes) : idx;
     setSize ((int) std::lround (sizeHeight (i) * (double) kW / (double) kH), sizeHeight (i));
+    hostLock.enforce();
 }
 
 void RingEditor::flash (const juce::String& text, double seconds) { content->flash (text, seconds); }
@@ -712,86 +715,71 @@ void RingEditor::showPresetMenu (juce::Rectangle<int> screenArea)
         });
 }
 
-void RingEditor::showContextMenu (int learnIdx)
+juce::PopupMenu RingEditor::buildContextMenu (int learnIdx)
 {
     using namespace NineHandsMenu;
     juce::PopupMenu menu;
     menu.setLookAndFeel (&menuLnf);
     const int lt = proc.learnTarget.load();
+    auto assign = [this] (int i) { const auto as = proc.learnAssignText (i); return as == "none" ? juce::String ("not assigned") : as; };
     if (learnIdx >= 0)
     {
+        // menu d'une commande (tronc commun) : en-tete, MIDI Learn, Clear MIDI, Cancel MIDI learn
         const juce::String name = RingProcessor::learnDef (learnIdx).name;
         const int ico = learnIdx < 5 ? icoKnob : (learnIdx >= RingProcessor::lPresetFsw ? icoSwitch : (learnIdx == RingProcessor::lPresetKnob ? icoKnob : icoSwitch));
-        const auto as = proc.learnAssignText (learnIdx);
-        addHeader (menu, menuLnf.f, ico, menuAccent, name, "MIDI: " + (as == "none" ? juce::String ("not assigned") : as));
+        addHeader (menu, menuLnf.f, ico, menuAccent, name, "MIDI: " + assign (learnIdx));
         menu.addItem (1000 + learnIdx, "MIDI Learn: " + name, true, lt == learnIdx);
-        menu.addItem (1100 + learnIdx, "Clear MIDI: " + name, as != "none");
-        if (lt >= 0) menu.addItem (1200, "Cancel MIDI learn");
-        if (learnIdx == RingProcessor::lBypass)
-            menu.addItem (1300, "MIDI footswitch latching (toggle on press and release)", true, proc.isBypassLatching());
-        menu.addSeparator();
+        menu.addItem (1100 + learnIdx, "Clear MIDI: " + name, proc.learnAssignText (learnIdx) != "none");
+        menu.addItem (1200, "Cancel MIDI learn", lt >= 0);
+        return menu;
     }
-    else
-        addHeader (menu, menuLnf.f, icoPedal, menuAccent, "Ring Think", "Ring modulator  v" + juce::String (JucePlugin_VersionString));
 
-    juce::PopupMenu sizes, defSizes;
-    {
-        const char* names[numSizes] = { "60 %", "75 %", "100 %" };
-        const int def = WigaWindowSize::defaultIndex (JucePlugin_Name, numSizes);
-        const int cur = currentSizeIndex();
-        for (int i = 0; i < numSizes; ++i)
-        {
-            sizes.addItem (1 + i, juce::String (names[i]) + (i == def ? "  (default)" : ""), true, cur == i);
-            defSizes.addItem (20 + i, names[i], true, i == def);
-        }
-        sizes.addSeparator();
-        sizes.addSubMenu ("Default size (new windows)", defSizes);
-    }
-    menu.addSubMenu ("Plugin size", sizes);
-    juce::PopupMenu glowM;                              // halo des lumieres : 25 / 50 / 75 / 100 %
-    {
-        const int now = juce::roundToInt (glow * 100.0f);
-        for (int i = 0; i < NineHandsGlow::numSteps; ++i)
-        {
-            const int pc = NineHandsGlow::steps[i];
-            glowM.addItem (60 + i, "Glow " + juce::String (pc) + " %" + (pc == 100 ? "  (default)" : ""), true, now == pc);
-        }
-    }
-    menu.addSubMenu ("Glow (halo of the lights)", glowM);
-    menu.addSeparator();
-
+    addHeader (menu, menuLnf.f, icoPedal, menuAccent, "Ring Think", "Ring modulator  v" + juce::String (JucePlugin_VersionString));
     const int slot = proc.getCurrentSlot();
-    juce::PopupMenu presets;
+    juce::PopupMenu factory, load, save;
+    for (int i = 0; i < 10; ++i)
+        factory.addItem (130 + i, juce::String (i + 1) + ". " + RingProcessor::factoryNames[i]);
+    factory.addSeparator();
+    factory.addItem (112, slot > 0 ? "Restore factory preset " + juce::String (slot) : juce::String ("Restore factory preset"), slot > 0);
+    factory.addItem (113, "Restore ALL factory presets");
+    menu.addSubMenu ("Factory presets", factory);
     for (int s = 1; s <= 9; ++s)
-        presets.addItem (100 + s, "Load preset " + juce::String (s) + (proc.isSlotFactory (s) ? "  " + juce::String (RingProcessor::factoryNames[s - 1]) : juce::String ("  (user)")), true, slot == s);
-    presets.addItem (100, "Live knobs (no preset)", true, slot == 0);
-    presets.addSeparator();
-    presets.addItem (111, slot > 0 ? "Save current sound to preset " + juce::String (slot) : juce::String ("Save (choose a preset first)"), slot > 0);
-    presets.addItem (112, slot > 0 ? "Restore factory preset " + juce::String (slot) : juce::String ("Restore factory preset"), slot > 0);
-    presets.addItem (113, "Restore ALL factory presets");
-    presets.addItem (110, "Load the factory Phaser sound");
-    menu.addSubMenu ("Presets", presets);
+    {
+        const juce::String what = proc.isSlotFactory (s) ? juce::String (RingProcessor::factoryNames[s - 1]) : juce::String ("user");
+        load.addItem (100 + s, "Preset " + juce::String (s) + "  (" + what + ")", true, slot == s);
+        save.addItem (140 + s, "Preset " + juce::String (s) + "  (overwrite)");
+    }
+    load.addSeparator();
+    load.addItem (100, "Live knobs (no preset)", true, slot == 0);
+    menu.addSubMenu ("Load user preset", load);
+    menu.addSubMenu ("Save user preset", save);
+    menu.addSeparator();
     menu.addItem (120, "Next mode combination (push the MODE knob)");
     menu.addSeparator();
 
     juce::PopupMenu midi;
     midi.addSectionHeader ("MIDI Learn");
     for (int i = 0; i < RingProcessor::numLearn; ++i)
-    {
-        const auto as = proc.learnAssignText (i);
-        midi.addItem (1000 + i, juce::String ("Learn: ") + RingProcessor::learnDef (i).name + "  (" + (as == "none" ? juce::String ("not assigned") : as) + ")", true, lt == i);
-    }
+        midi.addItem (1000 + i, juce::String ("Learn: ") + RingProcessor::learnDef (i).name + "  (" + assign (i) + ")", true, lt == i);
     midi.addSeparator();
-    if (lt >= 0) midi.addItem (1200, "Cancel MIDI learn");
+    midi.addItem (1200, "Cancel MIDI learn", lt >= 0);
     midi.addItem (1201, "Clear all MIDI assignments");
     midi.addSeparator();
-    midi.addItem (1300, "MIDI bypass latching (toggle on press and release)", true, proc.isBypassLatching());
-    midi.addItem (1302, "Footswitches also learn a MIDI note", false);
-    midi.addItem (1303, "Program Change 1-9 = presets (0 = live knobs)", false);
+    NineHandsWindow::addMidiFootswitchMode (midi, proc.isBypassLatching());
+    midi.addSeparator();
+    NineHandsWindow::addProgramChangeInfo (midi);
     menu.addSubMenu ("MIDI", midi);
     menu.addSeparator();
-    menu.addItem (999, "Ring Think v" + juce::String (JucePlugin_VersionString) + "  NINE HANDS | DSP", false);
 
+    const char* names[numSizes] = { "60 %", "75 %", "100 %" };
+    menu.addSubMenu ("Plugin size", NineHandsWindow::sizeMenu (JucePlugin_Name, numSizes, names, kHeights, getHeight()));
+    menu.addSubMenu ("Glow intensity", NineHandsWindow::glowMenu (juce::roundToInt (glow * 100.0f)));
+    return menu;
+}
+
+void RingEditor::showContextMenu (int learnIdx)
+{
+    auto menu = buildContextMenu (learnIdx);
     menu.showMenuAsync (juce::PopupMenu::Options().withMousePosition(),          // toujours la ou l'on clique
         [safe = juce::Component::SafePointer<RingEditor> (this)] (int r)
         {
@@ -799,23 +787,21 @@ void RingEditor::showContextMenu (int learnIdx)
             auto& ed = *safe;
             auto& pr = ed.proc;
             const int s = pr.getCurrentSlot();
-            if (r >= 1 && r < 1 + numSizes) ed.setScaleIndex (r - 1);
-            else if (r >= 20 && r < 20 + numSizes)
+            int inst = pr.uiScaleIdx.load();
+            const int sz = NineHandsWindow::handleSize (r, JucePlugin_Name, numSizes, inst);
+            if (sz >= 0) { ed.setScaleIndex (inst); return; }
+            if (const int pc = NineHandsWindow::handleGlow (r, JucePlugin_Name))
             {
-                WigaWindowSize::setDefaultIndex (JucePlugin_Name, r - 20);   // toutes les nouvelles fenetres de ce plugin
-                ed.setScaleIndex (-1);
-            }
-            else if (r >= 60 && r < 60 + NineHandsGlow::numSteps)
-            {
-                const int pc = NineHandsGlow::steps[r - 60];
-                NineHandsGlow::setPercent (JucePlugin_Name, pc);
                 ed.glow = (float) pc / 100.0f;
                 ed.repaint();
                 ed.flash ("Glow  " + juce::String (pc) + " %");
+                return;
             }
+            if      (r == NineHandsWindow::idLatch)     pr.setBypassLatching (true);
+            else if (r == NineHandsWindow::idMomentary) pr.setBypassLatching (false);
             else if (r >= 100 && r <= 109) pr.loadPreset (r - 100);
-            else if (r == 110) pr.loadFactorySound (9);
-            else if (r == 111) { pr.saveUserPreset (s); ed.flash ("Saved to preset " + juce::String (s)); }
+            else if (r >= 130 && r < 140) pr.loadFactorySound (r - 130);
+            else if (r > 140 && r < 150) { pr.saveUserPreset (r - 140); pr.loadPreset (r - 140); ed.flash ("Saved to preset " + juce::String (r - 140)); }
             else if (r == 112) pr.restoreFactoryPreset (s);
             else if (r == 113) { pr.restoreAllFactory(); ed.flash ("Factory presets restored"); }
             else if (r == 120) pr.cycleModes();
@@ -828,6 +814,5 @@ void RingEditor::showContextMenu (int learnIdx)
             }
             else if (r == 1200) pr.learnTarget.store (-1);
             else if (r == 1201) { pr.learnTarget.store (-1); pr.resetMidiMap(); ed.flash ("All MIDI cleared"); }
-            else if (r == 1300) pr.setBypassLatching (! pr.isBypassLatching());
         });
 }

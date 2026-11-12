@@ -1,6 +1,7 @@
 #pragma once
 #include "PluginProcessor.h"
 #include "NineHandsMenu.h"
+#include "NineHandsWindow.h"
 
 class PedalContent;
 
@@ -24,10 +25,12 @@ public:
 
     // menus clic droit (design d'Octopus), toujours ouverts a l'endroit du clic
     void showContextMenu (int learnIdx);              // -1 = menu principal
+    juce::PopupMenu buildContextMenu (int learnIdx);  // (aussi pour l'outil de controle des menus)
     void showPresetMenu (juce::Rectangle<int> screenArea);
     void flash (const juce::String& text, double seconds = 2.5);
 
     NineHandsMenu::MenuLnf menuLnf;
+    NineHandsWindow::HostLock hostLock;               // fenetre du DAW : jamais sous 60 %, jamais au-dela de 150 %
     juce::Typeface::Ptr regularFace, mediumFace, boldFace;
     float glow = 1.0f;                                // reglage Glow (0,25 a 1)
 

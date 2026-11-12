@@ -6,7 +6,7 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
 endif()
 
-project(WigaRingThink VERSION 3.0.3)
+project(WigaRingThink VERSION 3.1.0)
 
 include(FetchContent)
 FetchContent_Declare(JUCE
@@ -52,6 +52,17 @@ target_sources(RingThingSSB PRIVATE
   PluginProcessor.cpp
   PluginEditor.cpp)
 
+
+# verrou de taille de la fenetre du DAW (jamais sous 60 %, jamais au-dela de 150 %)
+if(APPLE)
+  target_sources(RingThingSSB PRIVATE WindowMinSize.mm)
+  target_link_libraries(RingThingSSB PRIVATE "-framework Cocoa")
+else()
+  target_sources(RingThingSSB PRIVATE WindowMinSize.cpp)
+endif()
+if(WIN32)
+  target_link_libraries(RingThingSSB PRIVATE comctl32 user32)
+endif()
 target_compile_definitions(RingThingSSB PUBLIC
   JUCE_WEB_BROWSER=0
   JUCE_USE_CURL=0
